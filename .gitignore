@@ -1,0 +1,11 @@
+# IDE Files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Build tools
+build/
+.gradle/
+target/
+.com.rsa.cryptoj.fips140.katstatus.properties
