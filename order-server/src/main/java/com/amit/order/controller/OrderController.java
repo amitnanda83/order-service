@@ -2,8 +2,8 @@ package com.amit.order.controller;
 
 
 import com.amit.order.batch.JobScheduler;
+import com.amit.order.entity.Order;
 import com.amit.order.export.ExportRequest;
-import com.amit.order.model.Order;
 import com.amit.order.service.OrderService;
 import com.amit.order.util.JobParamUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +16,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Interface to place and export orders placed
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/order")
 public class OrderController {
 
-    private final OrderService orderService;
-
+    /**
+     * Interface to schedule jobs for exporting orders
+     */
     private final JobScheduler scheduler;
 
+    /**
+     * Service to interact with orders
+     */
+    private final OrderService orderService;
+
+    /**
+     * API is create a new {@link Order}
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Order placeOrder(@RequestBody Order order) {
@@ -32,18 +44,15 @@ public class OrderController {
         return orderService.placeOrder(order);
     }
 
+    /**
+     * Interface to export the orders available
+     */
     @GetMapping(value = "/export")
     @ResponseStatus(HttpStatus.OK)
-    public String exportOrders(@RequestBody ExportRequest request) {
+    public String exportOrders(@RequestBody ExportRequest request) throws Exception {
 
-        try {
-            JobParameters jobParameters = JobParamUtil.createParams(request);
-            scheduler.schedule(jobParameters);
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return "OK";
+        JobParameters jobParameters = JobParamUtil.createParams(request);
+        scheduler.schedule(jobParameters);
+        return jobParameters.getString("key");
     }
 }

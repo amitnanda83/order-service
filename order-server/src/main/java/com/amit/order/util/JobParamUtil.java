@@ -11,11 +11,17 @@ import java.util.Date;
 
 import static java.lang.System.getProperty;
 
+/**
+ * Helper class to create {@link JobParameters} from the export request received
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JobParamUtil {
 
     private final static String QUOTE = "\"";
 
+    /**
+     * Create {@link JobParameters} from request received
+     */
     public static JobParameters createParams(ExportRequest request) {
 
         return new JobParametersBuilder()

@@ -1,6 +1,6 @@
 package com.amit.order.batch;
 
-import com.amit.order.model.Order;
+import com.amit.order.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -36,21 +36,42 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 
+/**
+ * Configuration to create and schedule Job to Spring Batch for processing
+ */
 @Configuration
 @EnableBatchProcessing
 @RequiredArgsConstructor
 public class SpringBatchConfig {
 
+    /**
+     * Saved execution status for {@link Job}
+     */
     private final JobRepository jobRepository;
 
+    /**
+     * Interface to interact with mongo
+     */
     private final MongoTemplate mongoTemplate;
 
+    /**
+     * Factory to retrieve {@link Job} to execute
+     */
     private final JobBuilderFactory jobBuilderFactory;
 
+    /**
+     * Listener to intercept Jon completion messages
+     */
     private final JobCompletionListener completionListener;
 
+    /**
+     * Interface to create steps for batch processing
+     */
     private final StepBuilderFactory stepBuilderFactory;
 
+    /**
+     * Custom launcher to provide async execution of {@link Job}s
+     */
     @Bean(name = "myJobLauncher")
     public JobLauncher jobLauncher() throws Exception {
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
@@ -60,6 +81,9 @@ public class SpringBatchConfig {
         return jobLauncher;
     }
 
+    /**
+     * Reader step to retrieve data from mongo
+     */
     @Bean("dataReader")
     @StepScope
     public MongoItemReader<Order> reader(@Value("#{jobParameters[product]}") String product,
@@ -80,11 +104,15 @@ public class SpringBatchConfig {
         return reader;
     }
 
+    /**
+     * Writer to persiste data in required format
+     */
     @Bean
     @StepScope
     public AbstractFileItemWriter<Order> writer(@Value("#{jobParameters[type]}") String type,
             @Value("#{jobParameters[path]}") String path) {
 
+        // Does the data needs to be written in json
         if (Objects.equals(type, "json")) {
             JsonFileItemWriterBuilder<Order> builder = new JsonFileItemWriterBuilder<>();
             JacksonJsonObjectMarshaller<Order> marshaller = new JacksonJsonObjectMarshaller<>();
@@ -95,6 +123,7 @@ public class SpringBatchConfig {
                     .build();
         }
 
+        // Does the data needs to be written in csv
         Resource outputResource = new FileSystemResource(path);
         FlatFileItemWriter<Order> writer = new FlatFileItemWriter<>();
 
@@ -115,6 +144,9 @@ public class SpringBatchConfig {
         return writer;
     }
 
+    /**
+     * Tie the steps together to executed in the {@link Job}
+     */
     @Bean
     public Step fetchDatabaseStep(ItemReader<Order> dataReader, ItemWriter<Order> dataWriter) {
 
@@ -125,6 +157,9 @@ public class SpringBatchConfig {
                 .build();
     }
 
+    /**
+     * {@link Job} to be executed
+     */
     @Bean
     public Job runJob(ItemReader<Order> dataReader, ItemWriter<Order> dataWriter) {
         return jobBuilderFactory.get("export")
@@ -132,6 +167,9 @@ public class SpringBatchConfig {
                 .flow(fetchDatabaseStep(dataReader, dataWriter)).end().build();
     }
 
+    /**
+     * Executor to be used during processing, this custom executor provide parallel processing capability to the Job
+     */
     @Bean
     public TaskExecutor taskExecutor() {
         SimpleAsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
