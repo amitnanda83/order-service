@@ -13,12 +13,17 @@ import lombok.NoArgsConstructor;
 public class ExportRequest {
 
     /**
+     * Specified the mode in which export needs to run
+     */
+    private Mode mode;
+
+    /**
      * Identifier for the export job
      */
     private String key;
 
     /**
-     * Format in whcih data needs to be exported
+     * Format in which data needs to be exported
      */
     private String format;
 

@@ -6,8 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * Helper class to send different {@link Status} for export order jobs.
@@ -30,15 +31,15 @@ public class StatusResponder {
     /**
      * Method to send the status message
      */
-    public void sendStatus(JobParameters params, Status status) {
+    public void sendStatus(Map<String, String> params, Status status) {
 
         rabbitTemplate.convertAndSend(queue.getName(),
                 ExportResponse.builder()
                         .status(status)
-                        .id(params.getString("key"))
-                        .filePath(params.getString("path"))
+                        .id(params.get("key"))
+                        .filePath(params.get("path"))
                         .build());
 
-        log.info("Sent {} status message for {}", status, params.getString("key"));
+        log.info("Sent {} status message for {}", status, params.get("key"));
     }
 }

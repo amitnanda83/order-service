@@ -1,6 +1,7 @@
 package com.amit.order.batch;
 
 import com.amit.order.export.Status;
+import com.amit.order.util.JobParamUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -48,6 +49,6 @@ public class JobScheduler {
         log.info("Scheduled Batch Job for : {}", params.getString("key"));
 
         jobLauncher.run(job, params);
-        statusResponder.sendStatus(params, Status.IN_PROGRESS);
+        statusResponder.sendStatus(JobParamUtil.convertToMap(params), Status.IN_PROGRESS);
     }
 }

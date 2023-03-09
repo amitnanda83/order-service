@@ -1,6 +1,7 @@
 package com.amit.order.batch;
 
 import com.amit.order.export.Status;
+import com.amit.order.util.JobParamUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
@@ -27,6 +28,6 @@ public class JobCompletionListener extends JobExecutionListenerSupport {
     public void afterJob(JobExecution jobExecution) {
 
         Status status = jobExecution.getStatus() == BatchStatus.COMPLETED ? Status.COMPLETED : Status.FAILED;
-        statusResponder.sendStatus(jobExecution.getJobParameters(), status);
+        statusResponder.sendStatus(JobParamUtil.convertToMap(jobExecution.getJobParameters()), status);
     }
 }
